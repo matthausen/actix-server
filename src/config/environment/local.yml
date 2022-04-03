@@ -1,0 +1,4 @@
+dynamodb:
+  region_name: global
+  table_name: users
+  endpoint: http://localhost:8000
