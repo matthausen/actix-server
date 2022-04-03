@@ -18,6 +18,9 @@ build:
 run:
 	cargo run
 
+test:
+	cargo test
+
 docker-run:
 	docker run -p ${PORT}:${PORT} ${REPOSITORY}/${APP_NAME}
 

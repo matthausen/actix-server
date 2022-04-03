@@ -20,3 +20,5 @@ rusoto_core = "0.47.0"
 rusoto_dynamodb = "0.47.0"
 
 tracing = "0.1"
+
+mockall = "0.11.0"
