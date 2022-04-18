@@ -23,20 +23,20 @@ pub fn get_users() {
     get();
 }
 
-fn do_the_math(x: &dyn MathInterface) -> u32 {
-    x.add(4, 3)
-}
+// fn do_the_math(x: &dyn MathInterface) -> u32 {
+//     x.add(4, 3)
+// }
 
 // Tests
 #[cfg(test)]
 mod test {
-    use super::*;
+    // use super::*;
 
-    #[test]
-    fn test_add() {
-        let mut mock = MockMathInterface::default();
-        mock.expect_add()
-            .returning(|x, y| x + y);
-        assert_eq!(do_the_math(&mock), 7);
-    }
+    // #[test]
+    // fn test_add() {
+    //     let mut mock = MockMathInterface::default();
+    //     mock.expect_add()
+    //         .returning(|x, y| x + y);
+    //     assert_eq!(do_the_math(&mock), 7);
+    // }
 }

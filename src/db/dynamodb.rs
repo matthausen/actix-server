@@ -1,66 +1,48 @@
-use rusoto_core::Region;
-use rusoto_dynamodb::{
-    AttributeDefinition, 
-    CreateTableInput, 
-    DynamoDb, 
-    DynamoDbClient, 
-    KeySchemaElement, 
-    ListTablesInput, 
-    ProvisionedThroughput,
+use aws_sdk_dynamodb::model::{
+    AttributeDefinition, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType,
 };
+use std::process;
+use aws_sdk_dynamodb::{Client, Error};
 
 use crate::config::load_config::Config;
 
+// Create table with AWS SDK for DynamoDB if it doesn't exists already
+pub async fn create_table_if_not_exists(
+    cfg: &Config,
+    client: &Client, 
+    ) -> Result<(), Error> {
+    let a_name: String = String::from(&cfg.yml_cfg.dynamodb.primary_key);
+    let table_name: String = String::from(&cfg.yml_cfg.dynamodb.table_name);
 
-// Initialise a connection with dynamodb.
-// A global config is passed by reference.
-// On boot it will list all existing tables. If it can't find them
-// it will automatically generate one with the config defined in the yml file depending on the environment.
-#[tokio::main]
-pub async fn init_db_pool(cfg: &Config) {
-    let region: Region = Region::Custom {
-        endpoint: String::from(&cfg.yml_cfg.dynamodb.endpoint),
-        name: String::from(&cfg.yml_cfg.dynamodb.region_name),
+    let ad = AttributeDefinition::builder()
+        .attribute_name(&a_name)
+        .attribute_type(ScalarAttributeType::S)
+        .build();
+
+    let ks = KeySchemaElement::builder()
+        .attribute_name(&a_name)
+        .key_type(KeyType::Hash)
+        .build();
+
+    let pt = ProvisionedThroughput::builder()
+        .read_capacity_units(10)
+        .write_capacity_units(5)
+        .build();
+
+    match client
+        .create_table()
+        .table_name(table_name)
+        .key_schema(ks)
+        .attribute_definitions(ad)
+        .provisioned_throughput(pt)
+        .send()
+        .await
+    {
+        Ok(_) => println!("Added table {} with key {}", &cfg.yml_cfg.dynamodb.table_name, &cfg.yml_cfg.dynamodb.primary_key),
+        Err(e) => {
+            println!("Could not create table or table already exists: {}", e);
+        }
     };
 
-    let client = DynamoDbClient::new(region);
-    let list_tables_input: ListTablesInput = Default::default();
- 
-    match client.list_tables(list_tables_input).await {
-        Ok(output) => {
-            match output.table_names {
-                Some(table_name_list) => {
-                    if table_name_list.len() > 0 {
-                        for table_name in table_name_list {
-                            println!("Table {} already exist", table_name);
-                        }
-                    } else {
-                        let table_name: String = String::from(&cfg.yml_cfg.dynamodb.table_name);
-                        let _ = client.create_table(CreateTableInput {
-                                table_name,
-                                key_schema: vec![KeySchemaElement {
-                                    attribute_name: "Id".into(),
-                                    key_type: "HASH".into(),
-                                }],
-                                attribute_definitions: vec![AttributeDefinition {
-                                    attribute_name: "Id".into(),
-                                    attribute_type: "S".into(),
-                                }],
-                                provisioned_throughput: Some(ProvisionedThroughput {
-                                    read_capacity_units: 20,
-                                    write_capacity_units: 20,
-                                }),
-                                ..CreateTableInput::default()
-                            })
-                            .await;
-                    }
-                },
-                None => println!("No tables in database!"),
-            }
-        },
-        Err(error) => {
-            println!("Error: {:?}", error);
-        },
-    }
-
+    Ok(())
 }

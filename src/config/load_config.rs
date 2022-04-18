@@ -18,6 +18,7 @@ pub struct ConfigYml {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DynamoDBConfig {
     pub table_name: String,
+    pub primary_key: String,
     pub endpoint: String,
     pub region_name: String,
 }
