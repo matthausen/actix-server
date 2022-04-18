@@ -1,4 +1,9 @@
-// The user service. Contains
-// - storage
-// - config
-// - interface / trait (with get and create)
+use create::users::storage::{Storage};
+
+// The storage service
+pub struct UserService {
+    // Config
+    // Traits
+    // StorageService
+    pub storage_service: Storage
+}

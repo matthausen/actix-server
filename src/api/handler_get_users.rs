@@ -7,7 +7,7 @@ use actix_web::{
     Result
 };
 
-use crate::users::get_users::{get_users};
+// use crate::users::get_users::{get_users};
 
 const CONTENT_TYPE: &str = "application/json; charset=utf-8";
 
@@ -16,7 +16,7 @@ const CONTENT_TYPE: &str = "application/json; charset=utf-8";
 async fn get_all_users(session: Session, req: HttpRequest) -> Result<HttpResponse> {
     println!("handler get_users called");
 
-    get_users();
+    // get_users();
 
     Ok(HttpResponse::build(StatusCode::OK)
         .content_type(CONTENT_TYPE)
