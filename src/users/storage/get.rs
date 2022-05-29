@@ -1,6 +1,7 @@
 use aws_sdk_dynamodb::{Error};
 
 use crate::users::storage::service::{Storage, DynamoDB};
+use crate::users::storage::model::{User};
 
 
 // async fn get(
@@ -18,3 +19,15 @@ use crate::users::storage::service::{Storage, DynamoDB};
     
 //     Ok(result)
 // }
+
+impl Storage {
+    pub fn get(&self, id: &str) -> User {
+        let new_email = format!("test{}@example.com", id);
+        User {
+            email: new_email,
+            first_name: String::from("Alice"),
+            last_name: String::from("Wonderland"),
+            password: String::from("secret_password"),
+        }
+    }
+}

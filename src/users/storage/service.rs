@@ -1,6 +1,7 @@
 use aws_sdk_dynamodb::model::AttributeValue;
 use aws_sdk_dynamodb::client::fluent_builders::PutItem;
 
+use crate::users::storage::model::{User};
 
 #[async_trait::async_trait]
 pub trait DynamoDB {
@@ -15,5 +16,4 @@ pub trait DynamoDB {
 
 // The storage service
 pub struct Storage {
-    table_name: String
 }

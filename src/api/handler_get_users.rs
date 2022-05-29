@@ -1,13 +1,17 @@
 use actix_session::{Session};
 use actix_web::http::{StatusCode};
 use actix_web::{
-    get, 
+    get,
+    web,
     HttpRequest, 
     HttpResponse, 
-    Result
+    Result,
+    Responder,
 };
 
-// use crate::users::get_users::{get_users};
+
+use crate::api::service::{ServiceHandler};
+use crate::users::service::{UserService};
 
 const CONTENT_TYPE: &str = "application/json; charset=utf-8";
 
@@ -16,9 +20,10 @@ const CONTENT_TYPE: &str = "application/json; charset=utf-8";
 async fn get_all_users(session: Session, req: HttpRequest) -> Result<HttpResponse> {
     println!("handler get_users called");
 
-    // get_users();
+    let id: &'static str = "1";
+    let res = UserService::get_users(&UserService{}, id);
 
     Ok(HttpResponse::build(StatusCode::OK)
         .content_type(CONTENT_TYPE)
-        .body("Hello Users"))
+        .json(res))
 }
