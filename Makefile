@@ -40,4 +40,4 @@ docker-push:
 kill-all:
 	docker kill $(docker container ls -q)
 
-.PHONY: help install uild run docker-push kill-all
+.PHONY: help install build watch run docker-push kill-all

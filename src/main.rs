@@ -10,7 +10,6 @@ mod users;
 
 use config::load_config::{Config, load_from_file};
 use db::dynamodb::{create_table_if_not_exists};
-use api::handler_get_users::{get_all_users};
 use api::handler_post_user::{post_user};
 
 
@@ -20,14 +19,14 @@ async fn main() -> std::io::Result<()> {
     // load from config
     let cfg: Config = load_from_file();
 
-    
     // Init DB
     match init_db(&cfg) {
         Ok(_) => println!("DB successfully started"),
         Err(e) => println!("Got error initiating DynamoDB: {}", e)
     }
-    
 
+    // Services init
+    
     // Start server
     info!("Starting server at http://localhost:{}/", &cfg.port);
     println!("{:?}", cfg);
@@ -35,7 +34,6 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
         .wrap(middleware::Logger::default())
-        .service(get_all_users)
         .service(post_user)
     })
     .bind(format!("0.0.0.0:{}", cfg.port))?
