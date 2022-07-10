@@ -1,5 +1,5 @@
-use actix_web::{middleware, App, HttpServer};
-use aws_sdk_dynamodb::{Client, Error};
+use actix_web::{middleware, web, App, HttpServer};
+use aws_sdk_dynamodb::{Client};
 use tracing::{info};
 use aws_sdk_dynamodb::Endpoint;
 
@@ -19,40 +19,34 @@ async fn main() -> std::io::Result<()> {
     // load from config
     let cfg: Config = load_from_file();
 
-    // Init DB
-    match init_db(&cfg) {
-        Ok(_) => println!("DB successfully started"),
-        Err(e) => println!("Got error initiating DynamoDB: {}", e)
-    }
-
     // Services init
+    //let userStorage = Storage::new(&cfg);
+
+    // init DynamoDB client
+    let aws_config = aws_config::load_from_env().await;
+    let dynamodb_local_aws_config = aws_sdk_dynamodb::config::Builder::from(&aws_config)
+        .endpoint_resolver(
+            Endpoint::immutable(actix_web::http::Uri::from_static("http://localhost:8000")),
+        )
+        .build();
+    let client = Client::from_conf(dynamodb_local_aws_config);
+    
+    // Create the table if it doesn't exist
+    create_table_if_not_exists(&cfg, &client).await;
+    
     
     // Start server
     info!("Starting server at http://localhost:{}/", &cfg.port);
     println!("{:?}", cfg);
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
+        .app_data(web::Data::new(client.clone()))
+        .app_data(web::Data::new(cfg.clone()))
         .wrap(middleware::Logger::default())
         .service(post_user)
     })
-    .bind(format!("0.0.0.0:{}", cfg.port))?
+    .bind(format!("0.0.0.0:{}", "8080"))?
     .run()
     .await
-}
-
-#[tokio::main]
-async fn init_db(cfg: &Config) -> Result<(), Error> {
-    // init db connection with config
-    let config = aws_config::load_from_env().await;
-
-    let dynamodb_local_config = aws_sdk_dynamodb::config::Builder::from(&config)
-        .endpoint_resolver(
-            // 8000 is the default dynamodb port
-            Endpoint::immutable(actix_web::http::Uri::from_static("http://localhost:8000")),
-        )
-        .build();
-
-    let client = Client::from_conf(dynamodb_local_config);
-    create_table_if_not_exists(&cfg, &client).await
 }

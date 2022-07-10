@@ -2,20 +2,20 @@ use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::{env};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize,Clone,Deserialize)]
 pub struct Config {
     pub environment: String,
     pub port: String,
     pub yml_cfg: ConfigYml,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct ConfigYml {
     pub dynamodb: DynamoDBConfig,
 }
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct DynamoDBConfig {
     pub table_name: String,
     pub primary_key: String,

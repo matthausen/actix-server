@@ -1,3 +1,2 @@
-pub mod create_user;
-pub mod service;
-pub mod storage;
+pub mod user_storage;
+pub mod model;

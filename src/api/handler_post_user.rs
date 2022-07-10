@@ -4,10 +4,12 @@ use futures::StreamExt;
 use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 
-use crate::users::storage::model::{User};
-use crate::users::service::{UserService};
+use crate::users::user_storage::{Storage};
+use crate::users::model::{User};
+use aws_sdk_dynamodb::{Client};
+use crate::config::load_config::{Config};
 
-const CONTENT_TYPE: &str = "application/json; charset=utf-8";
+// const CONTENT_TYPE: &str = "application/json; charset=utf-8";
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
 #[derive(Serialize, Deserialize)]
@@ -19,7 +21,7 @@ pub struct UserBodyRequest {
 }
 
 #[post("/api/v1/user")]
-async fn post_user(mut payload: web::Payload) -> Result<HttpResponse, Error> {
+async fn post_user(client: web::Data<Client>, cfg: web::Data<Config>, mut payload: web::Payload) -> Result<HttpResponse, Error> {
     let mut body = web::BytesMut::new();
     while let Some(chunk) = payload.next().await {
         let chunk = chunk?;
@@ -32,12 +34,12 @@ async fn post_user(mut payload: web::Payload) -> Result<HttpResponse, Error> {
     let server_req = serde_json::from_slice::<UserBodyRequest>(&body)?;
 
     let new_user = parse_request_to_db_model(server_req);
+    let table_name: &str = &cfg.yml_cfg.dynamodb.table_name;
 
-    let res = UserService::create_user(new_user).await;
-
-    Ok(HttpResponse::build(StatusCode::OK)
-        .content_type(CONTENT_TYPE)
-        .json(res))
+    match Storage::create(client, new_user, table_name).await {
+        Ok(res) => Ok(HttpResponse::Ok().json(res)),
+        Err(err) => Ok(HttpResponse::Ok().body(err.to_string())),
+    }
 }
 
 // Transform the server request into DB model
